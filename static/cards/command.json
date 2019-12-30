@@ -1,0 +1,54 @@
+{
+  "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+  "type": "AdaptiveCard",
+  "version": "1.0",
+  "body": [
+    {
+      "type": "ColumnSet",
+      "columns": [
+        {
+          "type": "Column",
+          "width": 3,
+          "items": [
+            {
+              "type": "TextBlock",
+              "text": "Command Runner",
+              "weight": "bolder",
+              "size": "medium"
+            },
+            {
+              "type": "TextBlock",
+              "text": "コマンドを送信します",
+              "isSubtle": true,
+              "wrap": true
+            },
+            {
+              "type": "TextBlock",
+              "text": "1行でコマンドを記述してください",
+              "isSubtle": true,
+              "wrap": true,
+              "size": "Small"
+            },
+            {
+              "type": "TextBlock",
+              "text": "command",
+              "wrap": true
+            },
+            {
+              "type": "Input.Text",
+              "id": "cmd",
+              "placeholder": "ls -l"
+            }
+
+          ]
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "type": "Action.Submit",
+      "title": "Submit"
+    }
+  ]
+}

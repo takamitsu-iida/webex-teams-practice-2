@@ -1,0 +1,56 @@
+{
+  "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+  "type": "AdaptiveCard",
+  "version": "1.0",
+  "body": [
+    {
+      "type": "ColumnSet",
+      "columns": [
+        {
+          "type": "Column",
+          "width": 3,
+          "items": [
+            {
+              "type": "TextBlock",
+              "size": "medium",
+              "weight": "bolder",
+              "text": "選択"
+            },
+            {
+              "type": "TextBlock",
+              "text": "何色が好き？"
+            },
+
+            {
+              "type": "Input.ChoiceSet",
+              "id": "SingleSelectVal",
+              "style": "expanded",
+              "value": "1",
+              "choices": [
+                {
+                  "title": "赤",
+                  "value": "1"
+                },
+                {
+                  "title": "緑",
+                  "value": "2"
+                },
+                {
+                  "title": "青",
+                  "value": "3"
+                }
+              ]
+            }
+
+          ]
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "type": "Action.Submit",
+      "title": "Submit"
+    }
+  ]
+}
