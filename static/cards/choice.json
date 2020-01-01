@@ -20,7 +20,6 @@
               "type": "TextBlock",
               "text": "何色が好き？"
             },
-
             {
               "type": "Input.ChoiceSet",
               "id": "SingleSelectVal",

@@ -2,17 +2,17 @@
   "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
   "type": "AdaptiveCard",
   "version": "1.0",
-  "speak": "The forecast for Yokohama",
+  "speak": "The weather forecast in Yokohama",
   "body": [
     {
       "type": "TextBlock",
-      "text": "横浜",
+      "text": "{{ city }}",
       "size": "large",
       "isSubtle": true
     },
     {
       "type": "TextBlock",
-      "text": "2019年12月31日",
+      "text": "{{ today.date }}",
       "spacing": "None"
     },
     {
@@ -24,7 +24,7 @@
           "items": [
             {
               "type": "Image",
-              "url": "https://messagecardplayground.azurewebsites.net/assets/Mostly%20Cloudy-Square.png",
+              "url": "{{ today.img_url }}",
               "size": "Small"
             }
           ]
@@ -35,7 +35,7 @@
           "items": [
             {
               "type": "TextBlock",
-              "text": "22度",
+              "text": "{{ today.telop }}",
               "size": "ExtraLarge",
               "spacing": "None"
             }
@@ -47,24 +47,12 @@
           "items": [
             {
               "type": "TextBlock",
-              "text": "°C",
-              "weight": "Bolder",
-              "spacing": "Small"
-            }
-          ]
-        },
-        {
-          "type": "Column",
-          "width": "stretch",
-          "items": [
-            {
-              "type": "TextBlock",
-              "text": "最高気温 10",
+              "text": "最高気温 {{ today.temp_max }} 度",
               "horizontalAlignment": "Left"
             },
             {
               "type": "TextBlock",
-              "text": "最低気温 5",
+              "text": "最低気温 {{ today.temp_min }} 度",
               "horizontalAlignment": "Left",
               "spacing": "None"
             }
@@ -72,5 +60,6 @@
         }
       ]
     }
+
   ]
 }

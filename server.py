@@ -5,6 +5,7 @@ import logging
 import os
 import sys
 
+# iso8601 datetime format
 import dateutil.parser
 import pytz
 
@@ -67,14 +68,14 @@ def webhook():
 
   person_id = data.get('personId', '')
 
+  if person_id == bot.get_bot_id():
+    logger.info("this message is my own ... ignoring it")
+    return "this message is my own ... ignoring it"
+
   if 'type' in data and data.get('type') == 'submit':
     logger.info("submit received from %s", person_id)
     on_receive_submit(data)
     return "successfully receive submit"
-
-  if person_id == bot.get_bot_id():
-    logger.info("this message is my own ... ignoring it")
-    return "this message is my own ... ignoring it"
 
   on_receive_message(data)
   return "successfully receive message"
