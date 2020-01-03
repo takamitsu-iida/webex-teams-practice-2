@@ -27,51 +27,32 @@ from botscript import bot
 app_home = here(".")
 card_dir = os.path.join(app_home, 'static', 'cards')
 
-REDIS_URL = os.environ.get('REDIS_URL') if os.environ.get('REDIS_URL') is not None else 'redis://localhost:6379'
-REDIS_INDEX = 1
 
+REDIS_DEBUG = False
 
-class RedisTemporaryInstance:
-  def __init__(self):
-    self.process = None
+if REDIS_DEBUG:
+  REDIS_URL = os.environ.get('REDIS_URL') if os.environ.get('REDIS_URL') is not None else 'redis://localhost:6379'
+  REDIS_INDEX = 1
 
-  def __enter__(self):
-    self.process = subprocess.Popen(['redis-server', '--port', '6399'],
-                                    stdout=open(os.devnull, 'wb'),
-                                    stderr=subprocess.STDOUT)
-    subprocess.call(['redis-cli', '-p', '6399', 'ping'])
-    return self
+  class RedisTemporaryInstance:
+    def __init__(self):
+      self.process = None
 
-  def __exit__(self, exc_type, exc_value, traceback):
-    subprocess.call(['redis-cli', '-p', '6399', 'shutdown'])
+    def __enter__(self):
+      self.process = subprocess.Popen(['redis-server', '--port', '6399'],
+                                      stdout=open(os.devnull, 'wb'),
+                                      stderr=subprocess.STDOUT)
+      subprocess.call(['redis-cli', '-p', '6399', 'ping'])
+      return self
 
-with RedisTemporaryInstance() as temp:
-  red = redis.Redis(port=6399)
-  print(red.ping())
+    def __exit__(self, exc_type, exc_value, traceback):
+      subprocess.call(['redis-cli', '-p', '6399', 'shutdown'])
 
+  with RedisTemporaryInstance():
+    red = redis.Redis(port=6399)
+    print(red.ping())
 
-redis_conn = redis.StrictRedis(connection_pool=redis.ConnectionPool.from_url(REDIS_URL, db=REDIS_INDEX, max_connections=4))
-
-# 接続エラーがあれば終了
-try:
-  print('DB size : ' + str(redis_conn.dbsize()))
-except Exception as e:
-  sys.exit(str(e))
-
-# 設定したデータベースの削除
-redis_conn.flushdb()
-
-# キーの登録 飛び飛び
-for i in range(5):
-  r.set('key' + str(i * 2), {'val': 'val' + str(i)})
-
-# キーの参照
-for i in range(10):
-  key = 'key' + str(i)
-  print(key + ' → ' + str(r.get(key)))
-
-# キー一覧
-print(r.keys())
+  redis_conn = redis.StrictRedis(connection_pool=redis.ConnectionPool.from_url(REDIS_URL, db=REDIS_INDEX, max_connections=4))
 
 
 def send_text(text=None, to_person_email=None):

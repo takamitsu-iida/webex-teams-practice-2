@@ -3,6 +3,7 @@
 
 import logging
 import os
+import subprocess
 import sys
 
 # iso8601 datetime format
@@ -151,6 +152,26 @@ def from_iso8601(iso_str=None):
   return iso_date
 
 
+def is_redis_server_running():
+  return subprocess.run(['redis-cli', '-p', '6399', 'ping'], check=False, stdout=subprocess.DEVNULL).returncode == 0
+
+
+def run_redis_server():
+  subprocess.Popen(['redis-server', './conf/redis.conf'], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+  subprocess.call(['redis-cli', '-p', '6399', 'ping'])
+
+
+def shutdown_redis_server():
+  subprocess.call(['redis-cli', '-p', '6399', 'shutdown', 'save'])
+
+
 if __name__ == '__main__':
 
+  assert bot.has_webhooks(), sys.exit("no webhook found for this bot.")
+
+  if is_redis_server_running() is False:
+    run_redis_server()
+
   app.run(host='127.0.0.1', port=5000, use_reloader=True, debug=True)
+  # or run
+  # gunicorn -c ./conf/gunicorn.conf.py server:app
