@@ -4,15 +4,17 @@
 import json
 import logging
 import os
+import subprocess
 import sys
 
 from jinja2 import Environment, FileSystemLoader
+
+import redis
 
 import requests
 requests.packages.urllib3.disable_warnings()
 
 logger = logging.getLogger(__name__)
-logging.basicConfig(level=logging.INFO)
 
 def here(path=''):
   return os.path.abspath(os.path.join(os.path.dirname(__file__), path))
@@ -24,6 +26,52 @@ from botscript import bot
 
 app_home = here(".")
 card_dir = os.path.join(app_home, 'static', 'cards')
+
+REDIS_URL = os.environ.get('REDIS_URL') if os.environ.get('REDIS_URL') is not None else 'redis://localhost:6379'
+REDIS_INDEX = 1
+
+
+class RedisTemporaryInstance:
+  def __init__(self):
+    self.process = None
+
+  def __enter__(self):
+    self.process = subprocess.Popen(['redis-server', '--port', '6399'],
+                                    stdout=open(os.devnull, 'wb'),
+                                    stderr=subprocess.STDOUT)
+    subprocess.call(['redis-cli', '-p', '6399', 'ping'])
+    return self
+
+  def __exit__(self, exc_type, exc_value, traceback):
+    subprocess.call(['redis-cli', '-p', '6399', 'shutdown'])
+
+with RedisTemporaryInstance() as temp:
+  red = redis.Redis(port=6399)
+  print(red.ping())
+
+
+redis_conn = redis.StrictRedis(connection_pool=redis.ConnectionPool.from_url(REDIS_URL, db=REDIS_INDEX, max_connections=4))
+
+# 接続エラーがあれば終了
+try:
+  print('DB size : ' + str(redis_conn.dbsize()))
+except Exception as e:
+  sys.exit(str(e))
+
+# 設定したデータベースの削除
+redis_conn.flushdb()
+
+# キーの登録 飛び飛び
+for i in range(5):
+  r.set('key' + str(i * 2), {'val': 'val' + str(i)})
+
+# キーの参照
+for i in range(10):
+  key = 'key' + str(i)
+  print(key + ' → ' + str(r.get(key)))
+
+# キー一覧
+print(r.keys())
 
 
 def send_text(text=None, to_person_email=None):
@@ -183,6 +231,8 @@ def get_weather_data():
 
 
 if __name__ == '__main__':
+
+  logging.basicConfig(level=logging.INFO)
 
   def main():
 

@@ -11,6 +11,7 @@
 - requests
 - dateutil
 - pytz
+- redis
 
 ## directory tree
 

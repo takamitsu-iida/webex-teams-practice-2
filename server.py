@@ -29,6 +29,7 @@ if DEBUG:
 # name of this application
 app_name = os.path.splitext(os.path.basename(__file__))[0]
 
+logging.basicConfig()
 logger = logging.getLogger(app_name)
 logger.setLevel(logging.INFO)
 stdout_handler = logging.StreamHandler(sys.stdout)
@@ -42,8 +43,7 @@ app = Flask(app_name)
 def webhook():
 
   # get the json data from request
-  json_data = request.get_json()
-  data = json_data.get('data')
+  data = request.get_json().get('data')
 
   # print(json.dumps(data, ensure_ascii=False, indent=2))
 
@@ -56,6 +56,7 @@ def webhook():
   #   "personEmail": "takamitsu.iida@gmail.com",
   #   "created": "2019-12-28T12:47:45.935Z"
   # }
+
   # in case of submit
   # {
   #   "id": "Y2lzY29zcGFyazovL3VzL0FUVEFDSE1FTlRfQUNUSU9OLzIwNTZkMjcwLTJhY2ItMTFlYS04MGJhLTNkMDE1ODc2MTM4NQ",
@@ -66,24 +67,31 @@ def webhook():
   #   "created": "2019-12-30T06:10:49.751Z"
   # }
 
-  person_id = data.get('personId', '')
-
-  if person_id == bot.get_bot_id():
-    logger.info("this message is my own ... ignoring it")
-    return "this message is my own ... ignoring it"
+  if 'created' not in data:
+    logger.info("receive data: this is not created event ... ignoring it")
+    return 'OK'
 
   if 'type' in data and data.get('type') == 'submit':
-    logger.info("submit received from %s", person_id)
+    logger.info("submit received")
     on_receive_submit(data)
-    return "successfully receive submit"
+    return 'OK'
+
+  person_id = data.get('personId', '')
+  if person_id == bot.get_bot_id():
+    logger.info("receive data: my own message ... ignoring it")
+    return 'OK'
 
   on_receive_message(data)
-  return "successfully receive message"
+  return 'OK'
 
 
 def on_receive_submit(data):
   if DEBUG:
     print(json.dumps(data, ensure_ascii=False, indent=2))
+
+  # be careful
+  # this data might be sent by another bot client
+
   attachment_id = data.get('id')
   attachment_data = bot.get_attachment(attachment_id=attachment_id)
   if not attachment_data:
@@ -92,6 +100,14 @@ def on_receive_submit(data):
 
   if DEBUG:
     print(json.dumps(attachment_data, ensure_ascii=False, indent=2))
+
+  # message_id is the matching key against adaptive cards sent before
+  message_id = attachment_data.get('messageId')
+  print(message_id)
+
+  if 'created' in attachment_data:
+    created = from_iso8601(attachment_data.get('created'))
+    print(created)
 
 
 def on_receive_message(data):
@@ -105,14 +121,24 @@ def on_receive_message(data):
     return
 
   # debug
-  print(message)
-  print('*'*10)
+  if DEBUG:
+    print('*'*10)
+    print(message)
+    print('*'*10)
 
-  if message.strip() != '' and message in bot.on_message_functions:
+  message = message.strip()
+  if message == '':
+    return
+
+  mention = '@{} '.format(bot.bot_name)
+  if message.startswith(mention):
+    message = message.replace(mention, '')
+
+  if message in bot.on_message_functions:
     func = bot.on_message_functions.get(message)
     func(room_id=room_id)
 
-  elif message.strip() != '' and message not in bot.on_message_functions:
+  elif message not in bot.on_message_functions:
     func = bot.on_message_functions.get('*')
     func(room_id=room_id)
 
