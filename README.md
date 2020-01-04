@@ -4,6 +4,10 @@
 
 [Cisco Webex Teamsの練習・その1](https://github.com/takamitsu-iida/webex-teams-practice-1) の続きです。
 
+今回はモジュール化する部分と、サーバ起動スクリプト、ボットロジック実装スクリプト、に分けています。
+
+ngrokとredisが必要です。
+
 ## requirements
 
 - gunicorn
@@ -13,7 +17,7 @@
 - pytz
 - redis
 
-## ブラウザで開くべきページ
+## ブラウザで開くページ
 
 [https://teams.webex.com/spaces](https://teams.webex.com/spaces)
 
@@ -27,70 +31,81 @@
 
 `webhook.py --start`
 
-一度実行すればngrokのプロセスは動き続ける。webhookも明示的に削除しない限り残る。
+一度実行すればngrokのプロセスは動き続けます。webhookも明示的に削除しない限り残ります。
+ngrokを止めるとwebhookのステータスはdisabledになってしまうかもしれません。
 
 `webhook.py --list`
 
-ngrokとwebhookの状況を確認する。
+ngrokとwebhookの状況を確認します。
 
 `webhook.py --update`
 
-webhookのステータスがdisabledになってしまった場合にactiveに戻す。自動では戻らない。
+webhookのステータスがdisabledになってしまった場合にactiveに戻します。一度disabledになってしまうと自動では戻りません。
 
 ### ngrokの停止とwebhookの削除
 
 `webhook.py --kill`
 
-ngrokを停止し、webhookを削除する。
+ngrokを停止し、webhookを削除します。
 
 `webhook.py --list`
 
-ちゃんと消えたか、確認する。
+ちゃんと消えたか、確認します。
 
 ### botサーバの起動
 
-flaskのwsgiサーバを使うなら、
+flaskに内蔵されているwsgiサーバを使うなら、
 
 `server.py`
+
+とします。
 
 gunicornを使うなら、
 
 `gunicorn -c ./conf/gunicorn.conf.py server:app`
 
-いずれもCtrl-Cで停止する。
+とします。
+
+いずれもCtrl-Cで停止します。
 
 ## Webhookについて
 
-Adaptive Cardを使う場合、メッセージ用とは別に応答を受信するWebhookが必要になる。
-typeで識別できるので、WebhookのターゲットURLは同じで構わない。
+Adaptive Cardを使う場合、メッセージ用とは別に応答を受信するWebhookが必要になります。
+つまり２個のWebhookを登録することになります。
+受信したメッセージのtypeで識別できますので、WebhookのターゲットURLは同じで構いません。
 
 ## Adaptive Cardsについて
 
-Cisco Webex TeamsでもMicrosoftのAdaptive Cardsが使える。
-ただし、全部の機能をサポートしているわけではないので、動くかどうかを試しながらやるしかない。
+Cisco Webex TeamsでもMicrosoftのAdaptive Cardsが使えます。
+ただし、全部の機能をサポートしているわけではありませんので、動くかどうかを試しながら実装するしかありません。
 
-内容が静的なカードというのはあまり使いみちがなく、動的に生成しないといけない。
+内容が静的なカードというのはあまり使いみちがなく、動的に生成するケースがほとんどでしょう。
+
 Microsoftのテンプレートを使うとそのへんがうまく解決できるものの、
-データとのバインディングをどうやって処理するのか、いまいち分からない。
+データとのバインディングはWebex Teamsでは実現できないようで、そのままでは使えません。
 
-動的に値を差し替えたい部分をjinja2で処理することにする。
+ここでは動的に値を差し替えたい部分をjinja2で処理することにします。
 
 1. サンプルのJSONを持ってくる
 1. そのJSONを加工して静的なカードにする
 1. Webex Teamsに送ってみて形が期待通りに表示されることを確認する
-1. jsonファイルをj2ファイルにコピーする
-1. 実際に送信するまえにJinja2で値を埋め込む
+1. jsonファイルをj2ファイルとしてコピーする
+1. 動的に変更したい部分を"{{ }}"で置き換える
+1. 実際に送信する前にJinja2で値を埋め込む
 
 ### Action.Submitの処理
 
-カードにはボタンをつけることができる。
-ユーザがボタンを押すとwebhookを通して通知がくる。
+カードにはボタンをつけることができます。
+ユーザがボタンを押すとwebhookを通して通知がきます。
 
-messageIdキーでどのカードに対する応答か、対応付けできる。
+通知を受けたあと、内容を取りに行きます。
+その内容にはmessageIdキーがありますので、それを使うことで、どのカードに対する応答なのか、対応付けられます。
 
-カードを送ったときに返ってくるidキーを保存しておき、submitが返ってきたときにはどのカードに対応したものなのか、調べる必要がある。
-カードの送信自体は多様なアプリで行われるので、保存先は外部のデータベースにするのがよい。
-ここではredisに保存している。
+カードを送ったときに返ってくるidキーを保存しておき、submitが返ってきたときにはどのカードに対応したものなのか、調べることになります。
+カードの送信自体は多様なアプリで行われますので、保存先は外部のデータベースにしなければいけません。
+
+ここではredisに保存することにします。
+本当はREST APIを作って、それを経由してredisに保存するべきだと思いますが、直接redisに保存します。
 
 ## 参考文献
 
