@@ -13,14 +13,58 @@
 - pytz
 - redis
 
-## directory tree
+## ブラウザで開くべきページ
 
-## Webhook
+[https://teams.webex.com/spaces](https://teams.webex.com/spaces)
 
-Adaptive Cardを使う場合、メッセージ用とは別に応答を受信するWebhookが別途必要になる。
+[http://127.0.0.1:4040/inspect/http](http://127.0.0.1:4040/inspect/http)
+
+[https://developer.webex.com/](https://developer.webex.com/)
+
+## 起動と停止
+
+### ngrokの起動とwebhook登録
+
+`webhook.py --start`
+
+一度実行すればngrokのプロセスは動き続ける。webhookも明示的に削除しない限り残る。
+
+`webhook.py --list`
+
+ngrokとwebhookの状況を確認する。
+
+`webhook.py --update`
+
+webhookのステータスがdisabledになってしまった場合にactiveに戻す。自動では戻らない。
+
+### ngrokの停止とwebhookの削除
+
+`webhook.py --kill`
+
+ngrokを停止し、webhookを削除する。
+
+`webhook.py --list`
+
+ちゃんと消えたか、確認する。
+
+### botサーバの起動
+
+flaskのwsgiサーバを使うなら、
+
+`server.py`
+
+gunicornを使うなら、
+
+`gunicorn -c ./conf/gunicorn.conf.py server:app`
+
+いずれもCtrl-Cで停止する。
+
+## Webhookについて
+
+Adaptive Cardを使う場合、メッセージ用とは別に応答を受信するWebhookが必要になる。
 typeで識別できるので、WebhookのターゲットURLは同じで構わない。
 
-## Adaptive Cards
+## Adaptive Cardsについて
 
 Cisco Webex TeamsでもMicrosoftのAdaptive Cardsが使える。
 ただし、全部の機能をサポートしているわけではないので、動くかどうかを試しながらやるしかない。
@@ -37,16 +81,16 @@ Microsoftのテンプレートを使うとそのへんがうまく解決でき�
 1. jsonファイルをj2ファイルにコピーする
 1. 実際に送信するまえにJinja2で値を埋め込む
 
-### Action.Submitの使い方
+### Action.Submitの処理
 
 カードにはボタンをつけることができる。
 ユーザがボタンを押すとwebhookを通して通知がくる。
 
-messageIdキーでどのカードのボタンなのか、対応付けることができる。
+messageIdキーでどのカードに対する応答か、対応付けできる。
 
-ということは、カードを送ったときに返ってくるmessageIdキーを保存しておき、submitが返ってきたときにはどのmessageIdに対応したものなのか、調べる必要がある。
-ある程度時間が経ったmessageIdは削除しないといけない。
-それ以前にサーバが再起動すると消えちゃうのをなんとかしないと実用にはならないか。
+カードを送ったときに返ってくるidキーを保存しておき、submitが返ってきたときにはどのカードに対応したものなのか、調べる必要がある。
+カードの送信自体は多様なアプリで行われるので、保存先は外部のデータベースにするのがよい。
+ここではredisに保存している。
 
 ## 参考文献
 

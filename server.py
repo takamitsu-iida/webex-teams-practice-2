@@ -95,9 +95,6 @@ def webhook():
 
 
 def on_receive_submit(data):
-  if DEBUG:
-    print(json.dumps(data, ensure_ascii=False, indent=2))
-
   attachment_id = data.get('id')
   attachment_data = bot.get_attachment(attachment_id=attachment_id)
   if not attachment_data:
@@ -113,9 +110,11 @@ def on_receive_submit(data):
 
   if DEBUG:
     print('server.py: on_receive_submit()')
+    print('data')
+    print(json.dumps(data, ensure_ascii=False, indent=2))
+    print('\n')
+    print('attachment_data')
     print(json.dumps(attachment_data, ensure_ascii=False, indent=2))
-    print('received message_id: {}'.format(message_id))
-    print('submitted by: {}'.format(person_id))
 
   conn = redis.StrictRedis.from_url(redis_url, decode_responses=True)
   redis_data = conn.hgetall(message_id)
@@ -175,7 +174,6 @@ def from_iso8601(iso_str=None):
 
 
 # redis_port is defined in ./lib/botscript.py
-# port 6399 is used in this app
 def is_redis_server_running():
   return subprocess.run(['redis-cli', '-p', str(redis_port), 'ping'], check=False, stdout=subprocess.DEVNULL).returncode == 0
 

@@ -64,21 +64,22 @@ def store_message(send_result):
 
     message_id = send_result.get('id')
 
-    # create redis client
     conn = redis.StrictRedis.from_url(redis_url, decode_responses=True)
 
-    # dict型で追加
+    # store as hash
     conn.hmset(message_id, send_result)
     conn.expire(message_id, 600)  # time to live is 10 min
 
 
 def show_redis_message_list():
   conn = redis.StrictRedis.from_url(redis_url, decode_responses=True)
-  # キーの一覧を表示
+
+  # show keys in db
   keys = conn.keys(pattern='*')
   for k in keys:
     print(k)
-  # メッセージ情報の一覧を表示
+
+  # show values in db
   for k in keys:
     data = conn.hgetall(k)
     print(json.dumps(data, ensure_ascii=False, indent=2))

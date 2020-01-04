@@ -175,14 +175,18 @@ if __name__ == '__main__':
     ngrok = Ngrok()
     info = ngrok.get_info()
     if info:
+      print('ngrok is running')
       print(json.dumps(info, ensure_ascii=False, indent=2))
+      print('')
     else:
       print('no ngrok found.')
 
     webhooks = bot.get_webhooks()
     if webhooks:
+      print('webhook is registered')
       for w in webhooks:
         print(json.dumps(w, ensure_ascii=False, indent=2))
+      print('')
     else:
       print('no webhook found.')
 
