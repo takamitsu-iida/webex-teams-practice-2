@@ -4,7 +4,6 @@
 import json
 import logging
 import os
-import subprocess
 import sys
 
 from jinja2 import Environment, FileSystemLoader
@@ -22,37 +21,14 @@ def here(path=''):
 if not here('./lib') in sys.path:
   sys.path.append(here('./lib'))
 
-from botscript import bot
+from botscript import bot, redis_url
 
-app_home = here(".")
+# name and directory path of this application
+app_name = os.path.splitext(os.path.basename(__file__))[0]
+app_home = here('.')
+conf_dir = os.path.join(app_home, 'conf')
+data_dir = os.path.join(app_home, 'data')
 card_dir = os.path.join(app_home, 'static', 'cards')
-
-
-REDIS_DEBUG = False
-
-if REDIS_DEBUG:
-  REDIS_URL = os.environ.get('REDIS_URL') if os.environ.get('REDIS_URL') is not None else 'redis://localhost:6379'
-  REDIS_INDEX = 1
-
-  class RedisTemporaryInstance:
-    def __init__(self):
-      self.process = None
-
-    def __enter__(self):
-      self.process = subprocess.Popen(['redis-server', '--port', '6399'],
-                                      stdout=open(os.devnull, 'wb'),
-                                      stderr=subprocess.STDOUT)
-      subprocess.call(['redis-cli', '-p', '6399', 'ping'])
-      return self
-
-    def __exit__(self, exc_type, exc_value, traceback):
-      subprocess.call(['redis-cli', '-p', '6399', 'shutdown'])
-
-  with RedisTemporaryInstance():
-    red = redis.Redis(port=6399)
-    print(red.ping())
-
-  redis_conn = redis.StrictRedis(connection_pool=redis.ConnectionPool.from_url(REDIS_URL, db=REDIS_INDEX, max_connections=4))
 
 
 def send_text(text=None, to_person_email=None):
@@ -74,10 +50,38 @@ def send_card(text=None, card_name=None, to_person_email=None):
 
   contents = get_card_content(card_name)
   if contents is None:
-    return
+    return None
   kwargs.update({'attachments': [contents]})
 
-  bot.send_message(**kwargs)
+  return bot.send_message(**kwargs)
+
+
+def store_message(send_result):
+  if send_result is not None:
+    if 'attachments' in send_result:
+      del send_result['attachments']
+    # print(json.dumps(send_result, ensure_ascii=False, indent=2))
+
+    message_id = send_result.get('id')
+
+    # create redis client
+    conn = redis.StrictRedis.from_url(redis_url, decode_responses=True)
+
+    # dict型で追加
+    conn.hmset(message_id, send_result)
+    conn.expire(message_id, 600)  # time to live is 10 min
+
+
+def show_redis_message_list():
+  conn = redis.StrictRedis.from_url(redis_url, decode_responses=True)
+  # キーの一覧を表示
+  keys = conn.keys(pattern='*')
+  for k in keys:
+    print(k)
+  # メッセージ情報の一覧を表示
+  for k in keys:
+    data = conn.hgetall(k)
+    print(json.dumps(data, ensure_ascii=False, indent=2))
 
 
 def get_card_content(card_name):
@@ -223,7 +227,9 @@ if __name__ == '__main__':
 
     # send_text(text='はい！', to_person_email=to_person_email)
     # send_card(text='INPUT CARD', card_name='command.json', to_person_email=to_person_email)
-    send_card(text='CHOICE CARD', card_name='choice.json', to_person_email=to_person_email)
+    send_result = send_card(text='CHOICE CARD', card_name='choice.json', to_person_email=to_person_email)
+    store_message(send_result)
+    show_redis_message_list()
 
     # print(json.dumps(get_weather(), ensure_ascii=False, indent=2))
 

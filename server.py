@@ -6,11 +6,15 @@ import os
 import subprocess
 import sys
 
-# iso8601 datetime format
+# decode/encode iso8601 datetime format
 import dateutil.parser
 import pytz
 
+# redis client for python
+import redis
+
 from flask import Flask, request
+
 
 def here(path=''):
   return os.path.abspath(os.path.join(os.path.dirname(__file__), path))
@@ -20,16 +24,20 @@ if not here('./lib') in sys.path:
 
 # this is ./lib/teams/v1/bot.py Bot class instance
 # please see ./lib/botscript.py
-from botscript import bot
+from botscript import bot, redis_port, redis_url
 
 DEBUG = True
 
 if DEBUG:
   import json
 
-# name of this application
+# name and directory path of this application
 app_name = os.path.splitext(os.path.basename(__file__))[0]
+app_home = here('.')
+conf_dir = os.path.join(app_home, 'conf')
+data_dir = os.path.join(app_home, 'data')
 
+# logging
 logging.basicConfig()
 logger = logging.getLogger(app_name)
 logger.setLevel(logging.INFO)
@@ -90,21 +98,35 @@ def on_receive_submit(data):
   if DEBUG:
     print(json.dumps(data, ensure_ascii=False, indent=2))
 
-  # be careful
-  # this data might be sent by another bot client
-
   attachment_id = data.get('id')
   attachment_data = bot.get_attachment(attachment_id=attachment_id)
   if not attachment_data:
     logger.error("failed to retreive submit data")
     return
 
-  if DEBUG:
-    print(json.dumps(attachment_data, ensure_ascii=False, indent=2))
-
   # message_id is the matching key against adaptive cards sent before
   message_id = attachment_data.get('messageId')
-  print(message_id)
+
+  # person_id is the person who submitted the data
+  person_id = attachment_data.get('personId')
+  room_id = attachment_data.get('roomId')
+
+  if DEBUG:
+    print('server.py: on_receive_submit()')
+    print(json.dumps(attachment_data, ensure_ascii=False, indent=2))
+    print('received message_id: {}'.format(message_id))
+    print('submitted by: {}'.format(person_id))
+
+  conn = redis.StrictRedis.from_url(redis_url, decode_responses=True)
+  redis_data = conn.hgetall(message_id)
+  if redis_data:
+    print("data found in redis")
+    if redis_data.get('submitted_by') is None:
+      conn.hset(message_id, 'submitted_by', person_id)
+    else:
+      print("already submitted by {}".format(redis_data.get('submitted_by')))
+  else:
+    print("no data found in redis")
 
   if 'created' in attachment_data:
     created = from_iso8601(attachment_data.get('created'))
@@ -152,26 +174,28 @@ def from_iso8601(iso_str=None):
   return iso_date
 
 
+# redis_port is defined in ./lib/botscript.py
+# port 6399 is used in this app
 def is_redis_server_running():
-  return subprocess.run(['redis-cli', '-p', '6399', 'ping'], check=False, stdout=subprocess.DEVNULL).returncode == 0
-
-
-def run_redis_server():
-  subprocess.Popen(['redis-server', './conf/redis.conf'], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-  subprocess.call(['redis-cli', '-p', '6399', 'ping'])
-
+  return subprocess.run(['redis-cli', '-p', str(redis_port), 'ping'], check=False, stdout=subprocess.DEVNULL).returncode == 0
 
 def shutdown_redis_server():
-  subprocess.call(['redis-cli', '-p', '6399', 'shutdown', 'save'])
+  subprocess.call(['redis-cli', '-p', str(redis_port), 'shutdown', 'save'])
+
+def run_redis_server(config_path):
+  if is_redis_server_running() is False:
+    subprocess.Popen(['redis-server', config_path], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
 
 if __name__ == '__main__':
 
-  assert bot.has_webhooks(), sys.exit("no webhook found for this bot.")
+  assert bot.has_webhooks(), sys.exit("no webhook found for this bot. please run webhook.py --start")
 
-  if is_redis_server_running() is False:
-    run_redis_server()
+  redis_config_file = '6399.conf'
+  redis_config_path = os.path.join(conf_dir, redis_config_file)
+  run_redis_server(redis_config_path)
 
   app.run(host='127.0.0.1', port=5000, use_reloader=True, debug=True)
-  # or run
+
+  # or use following command for production environment
   # gunicorn -c ./conf/gunicorn.conf.py server:app
