@@ -9,6 +9,9 @@ backup/
 log/
 logs/
 
+# redis
+*.rdb
+
 # vs code
 *.code-workspace
 
