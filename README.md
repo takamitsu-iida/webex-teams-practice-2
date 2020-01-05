@@ -61,11 +61,11 @@ bot_redis_urlに対してredis-cliで接続できない場合は、redis-server�
 
 ## ブラウザで開くページ
 
-<a href="https://teams.webex.com/spaces" target="_blank">https://teams.webex.com/spaces</a>
+[https://teams.webex.com/spaces](https://teams.webex.com/spaces)
 
-<a href="http://127.0.0.1:4040/inspect/http" target="_blank">http://127.0.0.1:4040/inspect/http</a>
+[http://127.0.0.1:4040/inspect/http](http://127.0.0.1:4040/inspect/http)
 
-<a href="https://developer.webex.com/" target="_blank">https://developer.webex.com/</a>
+[https://developer.webex.com/](https://developer.webex.com/)
 
 ## 起動と停止
 
@@ -163,9 +163,9 @@ Microsoftのテンプレートを使うとそのへんがうまく解決でき�
 Webex Teamsの開発者向けページ。
 Bot用のアカウントを作ったり、APIのマニュアルを参照したり、何をするにしてもここがスタート地点。
 
-<a href="https://developer.webex.com>" target="_blank">https://developer.webex.com/</a>
+[https://developer.webex.com](https://developer.webex.com)
 
 アダプティブカードのページ。
 テンプレートもここから参照。
 
-<a href="https://docs.microsoft.com/ja-jp/adaptive-cards/authoring-cards/getting-started" target="_blank">https://docs.microsoft.com/ja-jp/adaptive-cards/authoring-cards/getting-started</a>
+[https://docs.microsoft.com/ja-jp/adaptive-cards/authoring-cards/getting-started](https://docs.microsoft.com/ja-jp/adaptive-cards/authoring-cards/getting-started)
