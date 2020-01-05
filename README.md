@@ -21,7 +21,7 @@ ngrokとredisが必要です。
 
 githubに載せるスクリプトに設定情報を記述したくないので、必要な情報は環境変数から取得します。
 
-~/.bashrc
+`~/.bashrc`
 
 ```bash
 export bot_name='bot_1'
@@ -32,22 +32,22 @@ export bot_redis_url='redis://localhost:6399'
 
 ### 環境変数　`bot_name`
 
-webex teamsのbot名です。必須です。
+webex teamsのbot名を設定します。必須です。
 
 ### 環境変数 `bot_token`
 
-webex teamsのbotが利用する認証トークンの文字列です。
+webex teamsのbotが利用する認証トークンの文字列を設定します。任意です。
 
 ~/.bashrc にトークン文字列を書きたくない場合は、後述の ~/.{{ bot_name }} に記述します。
 
 ### 環境変数 `bot_webhook`
 
 webex teamsのbotが利用するwebhookのurlです。
-ngrokを使う場合は不要です。
+ngrokを使う場合は設定不要です。
 
 ### 環境変数 `to_person_email`
 
-msg.pyの中でテスト用に送信する相手のメールアドレスです。
+msg.pyの中でテスト用に送信する相手のメールアドレスです。後で削除します。
 
 ### 環境変数 `bot_redis_url`
 
@@ -61,11 +61,11 @@ bot_redis_urlに対してredis-cliで接続できない場合は、redis-server�
 
 ## ブラウザで開くページ
 
-[https://teams.webex.com/spaces](https://teams.webex.com/spaces)
+[https://teams.webex.com/spaces](https://teams.webex.com/spaces){:target="_blank"}
 
-[http://127.0.0.1:4040/inspect/http](http://127.0.0.1:4040/inspect/http)
+[http://127.0.0.1:4040/inspect/http](http://127.0.0.1:4040/inspect/http){:target="_blank"}
 
-[https://developer.webex.com/](https://developer.webex.com/)
+[https://developer.webex.com/](https://developer.webex.com/){:target="_blank"}
 
 ## 起動と停止
 
@@ -160,15 +160,12 @@ Microsoftのテンプレートを使うとそのへんがうまく解決でき�
 
 ## 参考文献
 
-開発者向けのページ。
+Webex Teamsの開発者向けページ。
 Bot用のアカウントを作ったり、APIのマニュアルを参照したり、何をするにしてもここがスタート地点。
 
-<https://developer.webex.com/>
+[https://developer.webex.com/](https://developer.webex.com/){:target="_blank"}
 
-WebhookのAPIマニュアル
+アダプティブカードのページ。
+テンプレートもここから参照。
 
-<https://developer.webex.com/docs/api/guides/webhooks>
-
-アダプティブ カード
-
-<https://docs.microsoft.com/ja-jp/adaptive-cards/authoring-cards/getting-started>
+[https://docs.microsoft.com/ja-jp/adaptive-cards/authoring-cards/getting-started](https://docs.microsoft.com/ja-jp/adaptive-cards/authoring-cards/getting-started){:target="_blank"}
