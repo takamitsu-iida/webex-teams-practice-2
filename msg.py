@@ -133,7 +133,6 @@ def get_weather_card():
   }
 
 
-
 def get_weather_data():
   """get weather information as json data.
 
@@ -214,17 +213,15 @@ def get_weather_data():
   # }
 
 
-
-
 if __name__ == '__main__':
 
   logging.basicConfig(level=logging.INFO)
 
   def main():
 
-    to_person_email = os.environ.get('person_email')
+    to_person_email = os.environ.get('to_person_email')
     if to_person_email is None:
-      sys.exit('failed to read person_email from os.environment')
+      sys.exit('failed to read to_person_email from os.environ')
 
     # send_text(text='はい！', to_person_email=to_person_email)
     # send_card(text='INPUT CARD', card_name='command.json', to_person_email=to_person_email)

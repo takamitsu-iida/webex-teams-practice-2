@@ -121,25 +121,66 @@ if __name__ == '__main__':
   logging.basicConfig(level=logging.INFO)
 
   def main():
-    parser = argparse.ArgumentParser(description='operate ngrok and webex teams webhook.')
-    parser.add_argument('-s', '--start', action='store_true', default=False, help='Start ngrok')
-    parser.add_argument('-k', '--kill', action='store_true', default=False, help='Kill ngrok process')
-    parser.add_argument('-l', '--list', action='store_true', default=False, help='List ngrok and webhook information')
+    parser = argparse.ArgumentParser(description='operate ngrok and webhook for webex teams.')
+    # webhook
+    parser.add_argument('-r', '--regist', action='store_true', default=False, help='Regist webhook')
+    parser.add_argument('-d', '--delete', action='store_true', default=False, help='Delete webhook')
     parser.add_argument('-u', '--update', action='store_true', default=False, help='Update disabled webhook')
+    # ngrok
+    parser.add_argument('-s', '--start', action='store_true', default=False, help='Start ngrok and regist webhook')
+    parser.add_argument('-k', '--kill', action='store_true', default=False, help='Kill ngrok process and delete webhook')
+    # list
+    parser.add_argument('-l', '--list', action='store_true', default=False, help='List ngrok and webhook information')
 
     args = parser.parse_args()
 
-    if args.start:
-      return start()
+    result_code = 0
 
-    if args.kill:
-      return kill()
+    if args.regist:
+      result_code = regist_webhook()
+    elif args.delete:
+      result_code = delete_webhook()
+    elif args.update:
+      result_code = update_webhook()
+    elif args.start:
+      result_code = start()
+    elif args.kill:
+      result_code = kill()
+    elif args.list:
+      result_code = list_info()
 
-    if args.list:
-      return list_info()
+    return result_code
 
-    if args.update:
-      return update_webhook()
+
+  def regist_webhook():
+    webhook_url = os.environ.get('bot_webhook')
+    if webhook_url is None or webhook_url.strip() == '':
+      logger.error("failed to read environment variable 'bot_webhook', please set it before run this script")
+      return -1
+
+    bot.regist_webhook(target_url=webhook_url)
+
+    return 0
+
+  def delete_webhook():
+    bot.delete_webhooks()
+    return 0
+
+
+  def update_webhook():
+    webhooks = bot.get_webhooks()
+    if not webhooks:
+      print("no webhook found.")
+      return 0
+
+    for w in webhooks:
+      status = w.get('status')
+      if status != 'active':
+        webhook_id = w.get('id')
+        webhook_name = w.get('name')
+        target_url = w.get('targetUrl')
+        print("disabled webhook found: {}".format(webhook_id))
+        bot.update_webhook(webhook_id=webhook_id, webhook_name=webhook_name, target_url=target_url)
 
     return 0
 
@@ -155,7 +196,7 @@ if __name__ == '__main__':
     public_url = ngrok.get_public_url()
 
     # register webhook with the public url
-    bot.register_webhook(target_url=public_url)
+    bot.regist_webhook(target_url=public_url)
 
     # show all webhooks
     logger.info("show all webhooks below")
@@ -165,11 +206,13 @@ if __name__ == '__main__':
 
     return 0
 
+
   def kill():
     ngrok = Ngrok()
     ngrok.pkill()
     bot.delete_webhooks()
     return 0
+
 
   def list_info():
     ngrok = Ngrok()
@@ -189,23 +232,6 @@ if __name__ == '__main__':
       print('')
     else:
       print('no webhook found.')
-
-    return 0
-
-  def update_webhook():
-    webhooks = bot.get_webhooks()
-    if not webhooks:
-      print("no webhook found.")
-      return 0
-
-    for w in webhooks:
-      status = w.get('status')
-      if status != 'active':
-        webhook_id = w.get('id')
-        webhook_name = w.get('name')
-        target_url = w.get('targetUrl')
-        print("disabled webhook found: {}".format(webhook_id))
-        bot.update_webhook(webhook_id=webhook_id, webhook_name=webhook_name, target_url=target_url)
 
     return 0
 

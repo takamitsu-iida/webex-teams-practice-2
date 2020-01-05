@@ -17,6 +17,48 @@ ngrokとredisが必要です。
 - pytz
 - redis
 
+## 設定
+
+githubに載せるスクリプトに設定情報を記述したくないので、必要な情報は環境変数から取得します。
+
+~/.bashrc
+
+```bash
+export bot_name='bot_1'
+export bot_webhook='https://____.japaneast.cloudapp.azure.com'
+export to_person_email='____@____'
+export bot_redis_url='redis://localhost:6399'
+```
+
+### 環境変数　`bot_name`
+
+webex teamsのbot名です。必須です。
+
+### 環境変数 `bot_token`
+
+webex teamsのbotが利用する認証トークンの文字列です。
+
+~/.bashrc にトークン文字列を書きたくない場合は、後述の ~/.{{ bot_name }} に記述します。
+
+### 環境変数 `bot_webhook`
+
+webex teamsのbotが利用するwebhookのurlです。
+ngrokを使う場合は不要です。
+
+### 環境変数 `to_person_email`
+
+msg.pyの中でテスト用に送信する相手のメールアドレスです。
+
+### 環境変数 `bot_redis_url`
+
+指定しない場合は 'redis://localhost:6399' が使われます。
+
+bot_redis_urlに対してredis-cliで接続できない場合は、redis-serverをバックグランドで起動します。
+
+### ファイル ~/.{{ bot_name }}
+
+環境変数 `bot_token` からトークンを読み出せなかった場合、このファイルから読み出しを試みます。
+
 ## ブラウザで開くページ
 
 [https://teams.webex.com/spaces](https://teams.webex.com/spaces)
@@ -56,7 +98,7 @@ ngrokを停止し、webhookを削除します。
 
 flaskに内蔵されているwsgiサーバを使うなら、
 
-`server.py`
+`./server.py`
 
 とします。
 
@@ -67,6 +109,15 @@ gunicornを使うなら、
 とします。
 
 いずれもCtrl-Cで停止します。
+
+### redisの停止
+
+botサーバを起動するとredis-serverもバックグランドで起動し、botサーバ終了後も動き続けます。
+redis-serverを停止するには、
+
+`./redis-shutdown.sh`
+
+とします。
 
 ## Webhookについて
 
