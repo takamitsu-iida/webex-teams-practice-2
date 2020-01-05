@@ -106,7 +106,7 @@ def on_receive_submit(data):
 
   # person_id is the person who submitted the data
   person_id = attachment_data.get('personId')
-  room_id = attachment_data.get('roomId')
+  # room_id = attachment_data.get('roomId')
 
   if DEBUG:
     print('server.py: on_receive_submit()')
@@ -156,13 +156,24 @@ def on_receive_message(data):
   if message.startswith(mention):
     message = message.replace(mention, '')
 
-  if message in bot.on_message_functions:
+  # command match
+  if message.startswith('/'):
+    parts = message.split()
+    cmd = parts[0]
+    if cmd in bot.on_command_functions:
+      func = bot.on_command_functions.get(cmd)
+      func(room_id=room_id)
+
+  # message match
+  elif message in bot.on_message_functions:
     func = bot.on_message_functions.get(message)
     func(room_id=room_id)
 
+  # unknown message
   elif message not in bot.on_message_functions:
     func = bot.on_message_functions.get('*')
     func(room_id=room_id)
+
 
 
 def from_iso8601(iso_str=None):
@@ -177,8 +188,10 @@ def from_iso8601(iso_str=None):
 def is_redis_server_running():
   return subprocess.run(['redis-cli', '-p', str(redis_port), 'ping'], check=False, stdout=subprocess.DEVNULL).returncode == 0
 
+
 def shutdown_redis_server():
   subprocess.call(['redis-cli', '-p', str(redis_port), 'shutdown', 'save'])
+
 
 def run_redis_server(config_path):
   if is_redis_server_running() is False:

@@ -4,9 +4,9 @@
 
 [Cisco Webex Teamsの練習・その1](https://github.com/takamitsu-iida/webex-teams-practice-1) の続きです。
 
-今回はモジュール化する部分と、サーバ起動スクリプト、ボットロジック実装スクリプト、に分けています。
+botに対して `/tenki` を送ると、天気予報を調べて教えてくれます。
 
-ngrokとredisが必要です。
+実行にはngrokとredisが必要です。
 
 ## requirements
 

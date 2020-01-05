@@ -136,7 +136,6 @@ def get_weather_card():
 def get_weather_data():
   """get weather information as json data.
 
-  ref
   http://weather.livedoor.com/weather_hacks/webservice
 
   """
