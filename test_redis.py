@@ -1,6 +1,10 @@
 #!/usr/bin/env python
 # pylint: disable=missing-docstring
 
+#
+# this is a test script for redis in python
+#
+
 import logging
 import os
 import sys
@@ -46,22 +50,26 @@ class RedisTemporaryInstance:
     cmd_server = "redis-server --port {}".format(port)
     cmd_ping = "redis-cli -p {} ping".format(port)
     cmd_shutdown = "redis-cli -p {} shutdown save".format(port)
-    self.cmd_server_list = cmd_server.split()
-    self.cmd_ping_list = cmd_ping.split()
-    self.cmd_shutdown_list = cmd_shutdown.split()
+    self.cmd_list_server = cmd_server.split()
+    self.cmd_list_ping = cmd_ping.split()
+    self.cmd_list_shutdown = cmd_shutdown.split()
 
   def __enter__(self):
     # run redis-server in background
-    proc = Popen(self.cmd_server_list, stdout=DEVNULL, stderr=DEVNULL)
+    proc = Popen(self.cmd_list_server, stdout=DEVNULL, stderr=DEVNULL)
     # check if redis-server is ready
-    while run(self.cmd_ping_list, check=False, stdout=DEVNULL, stderr=DEVNULL).returncode != 0:
+    i = 0
+    while run(self.cmd_list_ping, check=False, stdout=DEVNULL, stderr=DEVNULL).returncode != 0:
       if proc.poll() is not None:
         break
       sleep(0.5)
+      i += 1
+      if i == 10:
+        break
     return self
 
   def __exit__(self, exc_type, exc_value, traceback):
-    run(self.cmd_shutdown_list, check=False, stdout=DEVNULL, stderr=DEVNULL)
+    run(self.cmd_list_shutdown, check=False, stdout=DEVNULL, stderr=DEVNULL)
 
 
 if __name__ == '__main__':
