@@ -1,3 +1,4 @@
+# lib must be comment out
 
 # フォルダは残すけどその下はすべて無視
 /data/*
@@ -200,7 +201,7 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/
+# lib/
 lib64/
 parts/
 sdist/
