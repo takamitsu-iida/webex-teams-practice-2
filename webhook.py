@@ -45,8 +45,10 @@ class Ngrok:
     """
     self.port = port
 
-    # check if ngrok is installed
-    assert find_executable("ngrok"), "ngrok command must be installed, see https://ngrok.com/"
+    webhook_url = os.environ.get('bot_webhook')
+    if webhook_url is None or webhook_url.strip() == '':
+      # check if ngrok is installed
+      assert find_executable("ngrok"), "ngrok command must be installed, see https://ngrok.com/"
 
     self.ngrok_cmds = ["ngrok", "http", str(port), "-log=stdout"]
 
