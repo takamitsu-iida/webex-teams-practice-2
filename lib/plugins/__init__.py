@@ -32,7 +32,7 @@ def load_plugins(base_path):
   if not p.exists() or not p.is_dir():
     return {}
 
-  result = {}
+  result_list = []
   for path in p.glob('*.py'):
     module_name = Path(path).stem
     if module_name == '__init__':
@@ -41,16 +41,28 @@ def load_plugins(base_path):
     if module is None:
       continue
     dir_list = dir(module)
-    if 'plugin_main' in dir_list and 'plugin_prop' in dir_list:
-      # accept module which has plugin_init() and plugin_prop() function
-      result[module_name] = module
+    if 'plugin_props' in dir_list:  # only accept module which has plugin_props()
+      result_list.append(module)
 
-  return result
+  return result_list
+
+
+def create_map(module_list):
+  result_map = {}
+  for module in module_list:
+    props = module.plugin_props()
+    for prop in props:
+      command = prop.get('command')
+      func = prop.get('func')
+      result_map[command] = func
+  return result_map
 
 
 plugin_dir = here('.')
 
-plugin_map = load_plugins(plugin_dir)
+plugin_list = load_plugins(plugin_dir)
+
+plugin_map = create_map(plugin_list)
 
 
 if __name__ == '__main__':
@@ -58,10 +70,7 @@ if __name__ == '__main__':
   logging.basicConfig(level=logging.INFO)
 
   def main():
-    for key in plugin_map:
-      module = plugin_map.get(key)
-      prop = module.plugin_prop()
-      print('{}: {}'.format(key, prop.get('description')))
+    print(plugin_map)
 
     return 0
 

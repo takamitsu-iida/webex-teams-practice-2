@@ -23,8 +23,10 @@ if not here('./lib') in sys.path:
   sys.path.append(here('./lib'))
 
 # this is ./lib/teams/v1/bot.py Bot class instance
-# please see ./lib/botscript.py
 from botscript import bot, redis_port, redis_url
+
+# this is lib/plugins/__init__.py
+from plugins import plugin_map
 
 DEBUG = True
 
@@ -41,10 +43,6 @@ data_dir = os.path.join(app_home, 'data')
 logging.basicConfig()
 logger = logging.getLogger(app_name)
 logger.setLevel(logging.INFO)
-stdout_handler = logging.StreamHandler(sys.stdout)
-stdout_handler.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %(message)s'))
-stdout_handler.setLevel(logging.INFO)
-logger.addHandler(stdout_handler)
 
 app = Flask(app_name)
 
@@ -160,9 +158,10 @@ def on_receive_message(data):
   if message.startswith('/'):
     parts = message.split()
     cmd = parts[0]
-    if cmd in bot.on_command_functions:
-      func = bot.on_command_functions.get(cmd)
-      func(room_id=room_id)
+    args = parts[1:]
+    if cmd in plugin_map:
+      func = plugin_map.get(cmd)
+      func(bot=bot, room_id=room_id, args=args)
 
   # message match
   elif message in bot.on_message_functions:

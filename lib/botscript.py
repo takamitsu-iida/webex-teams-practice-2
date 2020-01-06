@@ -5,7 +5,6 @@ import logging
 import os
 
 from teams.v1.bot import Bot
-from plugins import plugin_map
 
 logger = logging.getLogger(__name__)
 
@@ -25,26 +24,3 @@ def respond_to_a(room_id=None):
 @bot.on_message('*')
 def default_response(room_id=None):
   bot.send_message(room_id=room_id, text="Sorry, could not understand that")
-
-
-@bot.on_command(command='/tenki')
-def return_menu(room_id=None):
-  module = plugin_map.get('weather')  # lib/plugins/weather.py
-  if module is None:
-    return
-  bot.send_message(room_id=room_id, text="横浜の天気をお調べします。")
-
-  data = module.plugin_main()
-
-  description = data.get('description')
-  if description:
-    bot.send_message(room_id=room_id, text=description)
-
-  card = data.get('card')
-  if card:
-    kwargs = {
-      'text': "weather",
-      'room_id': room_id,
-      'attachments': [card]
-    }
-    bot.send_message(**kwargs)
