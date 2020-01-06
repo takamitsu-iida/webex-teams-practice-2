@@ -208,7 +208,7 @@ if __name__ == '__main__':
   redis_config_path = os.path.join(conf_dir, redis_config_file)
   run_redis_server(redis_config_path)
 
-  app.run(host='127.0.0.1', port=5000, use_reloader=True, debug=True)
+  app.run(host='0.0.0.0', port=5000, use_reloader=True, debug=True)
 
   # or use following command for production environment
   # gunicorn -c ./conf/gunicorn.conf.py server:app
