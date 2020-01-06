@@ -48,7 +48,9 @@ def load_plugins(base_path):
 
 
 def create_map(module_list):
-  result_map = {}
+  result_map = {
+    '/': send_help
+  }
   for module in module_list:
     props = module.plugin_props()
     for prop in props:
@@ -58,11 +60,31 @@ def create_map(module_list):
   return result_map
 
 
+def create_help(module_list):
+  result_list = []
+  for module in module_list:
+    props = module.plugin_props()
+    for prop in props:
+      command = prop.get('command')
+      descr = prop.get('description')
+      result_list.append('\n  '.join([command, descr]) + '\n')
+  return result_list
+
+
+def send_help(bot=None, room_id=None, args=None):
+  # pylint: disable=unused-argument
+  if not all([bot, room_id]):
+    return
+  bot.send_message(room_id=room_id, text='\n'.join(plugin_help_ist))
+
+
 plugin_dir = here('.')
 
 plugin_list = load_plugins(plugin_dir)
 
 plugin_map = create_map(plugin_list)
+
+plugin_help_ist = create_help(plugin_list)
 
 
 if __name__ == '__main__':

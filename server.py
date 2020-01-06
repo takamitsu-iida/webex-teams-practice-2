@@ -161,7 +161,9 @@ def on_receive_message(data):
     args = parts[1:]
     if cmd in plugin_map:
       func = plugin_map.get(cmd)
-      func(bot=bot, room_id=room_id, args=args)
+    else:
+      func = plugin_map.get('/')  # default is '/'
+    func(bot=bot, room_id=room_id, args=args)
 
   # message match
   elif message in bot.on_message_functions:
