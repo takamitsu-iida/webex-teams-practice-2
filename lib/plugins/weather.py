@@ -198,6 +198,7 @@ def get_weather_data(city_code=None):
   # }
 
 def get_city_map():
+  # http://weather.livedoor.com/forecast/rss/primary_area.xml
   rss = '''
     <city title="稚内" id="011000" source="http://weather.livedoor.com/forecast/rss/area/011000.xml"/>
     <city title="旭川" id="012010" source="http://weather.livedoor.com/forecast/rss/area/012010.xml"/>
