@@ -6,8 +6,6 @@
 
 botに対して `/tenki` を送ると、天気予報を調べて教えてくれます。
 
-実行にはngrokとredisが必要です。
-
 ## requirements
 
 - gunicorn
@@ -25,7 +23,7 @@ githubに載せるスクリプトに設定情報を記述したくないので�
 
 ```bash
 export bot_name='bot_1'
-export bot_webhook='https://____.japaneast.cloudapp.azure.com'
+export bot_webhook='http://____.japaneast.cloudapp.azure.com:5000'
 export to_person_email='____@____'
 export bot_redis_url='redis://localhost:6399'
 ```
@@ -59,7 +57,7 @@ bot_redis_urlに対してredis-cliで接続できない場合は、redis-server�
 
 環境変数 `bot_token` からトークンを読み出せなかった場合、このファイルから読み出しを試みます。
 
-## ブラウザで開くページ
+## ブラウザで開いておくページ
 
 [https://teams.webex.com/spaces](https://teams.webex.com/spaces)
 
@@ -69,12 +67,11 @@ bot_redis_urlに対してredis-cliで接続できない場合は、redis-server�
 
 ## 起動と停止
 
-### ngrokの起動とwebhook登録
+### ngrokで作った公開URLを使ってwebhookに登録する
 
 `webhook.py --start`
 
 一度実行すればngrokのプロセスは動き続けます。webhookも明示的に削除しない限り残ります。
-ngrokを止めるとwebhookのステータスはdisabledになってしまうかもしれません。
 
 `webhook.py --list`
 
@@ -94,6 +91,16 @@ ngrokを停止し、webhookを削除します。
 
 ちゃんと消えたか、確認します。
 
+### webhookだけを登録する
+
+環境変数 `bot_webhook` を設定したあと、
+
+`webhook.py --regist`
+
+### webhookだけを削除する
+
+`webhook.py --delete`
+
 ### botサーバの起動
 
 flaskに内蔵されているwsgiサーバを使うなら、
@@ -106,7 +113,7 @@ gunicornを使うなら、
 
 `gunicorn -c ./conf/gunicorn.conf.py server:app`
 
-とします。
+とします。gunicornをデーモンにしたい場合は-Dを付けます。
 
 いずれもCtrl-Cで停止します。
 
@@ -123,7 +130,7 @@ redis-serverを停止するには、
 
 Adaptive Cardを使う場合、メッセージ用とは別に応答を受信するWebhookが必要になります。
 つまり２個のWebhookを登録することになります。
-受信したメッセージのtypeで識別できますので、WebhookのターゲットURLは同じで構いません。
+受信したメッセージのtypeで識別できますので、WebhookのターゲットURLは同じものを使います。
 
 ## Adaptive Cardsについて
 
