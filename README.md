@@ -6,15 +6,6 @@
 
 botに対して `/tenki` を送ると、天気予報を調べて教えてくれます。
 
-## requirements
-
-- gunicorn
-- Flask
-- requests
-- dateutil
-- pytz
-- redis
-
 ## 設定
 
 githubに載せるスクリプトに設定情報を記述したくないので、必要な情報は環境変数から取得します。
@@ -23,6 +14,7 @@ githubに載せるスクリプトに設定情報を記述したくないので�
 
 ```bash
 export bot_name='bot_1'
+export bot_token='xxxxxx'
 export bot_webhook='http://____.japaneast.cloudapp.azure.com:5000'
 export to_person_email='____@____'
 export bot_redis_url='redis://localhost:6399'
