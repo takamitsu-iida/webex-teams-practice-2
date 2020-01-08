@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 # create Bot class instance
 bot = Bot()
 
-# redis parameter, see ./conf/6399.conf
+# redis parameter, see ./conf/redis6399.conf
 redis_port = 6399
 redis_url = os.environ.get('bot_redis_url') if os.environ.get('bot_redis_url') is not None else 'redis://localhost:{}'.format(str(redis_port))
 

@@ -26,8 +26,8 @@ if not here('./lib') in sys.path:
 # this is ./lib/teams/v1/bot.py Bot class instance
 from botscript import bot, redis_port, redis_url
 
-# this is lib/plugins/__init__.py
-from plugins import plugin_map
+# ./lib/plugins/__init__.py
+from plugins import get_plugin_map
 
 DEBUG = True
 
@@ -141,7 +141,6 @@ def on_receive_message(data):
     logger.error("failed to retreive message: %s", message_id)
     return
 
-  # debug
   if DEBUG:
     print('*'*10)
     print(message)
@@ -160,6 +159,7 @@ def on_receive_message(data):
     parts = message.split()
     cmd = parts[0]
     args = parts[1:]
+    plugin_map = get_plugin_map()
     if cmd in plugin_map:
       func = plugin_map.get(cmd)
     else:
@@ -175,7 +175,6 @@ def on_receive_message(data):
   elif message not in bot.on_message_functions:
     func = bot.on_message_functions.get('*')
     func(room_id=room_id)
-
 
 
 def from_iso8601(iso_str=None):
@@ -204,7 +203,7 @@ if __name__ == '__main__':
 
   assert bot.has_webhooks(), sys.exit("no webhook found for this bot. please run webhook.py --start")
 
-  redis_config_file = '6399.conf'
+  redis_config_file = 'redis6399.conf'
   redis_config_path = os.path.join(conf_dir, redis_config_file)
   run_redis_server(redis_config_path)
 

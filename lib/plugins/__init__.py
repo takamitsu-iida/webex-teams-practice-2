@@ -29,11 +29,11 @@ def load_module(module_name, module_path):
 
 
 def load_plugins(base_path):
+  result_list = []
   p = Path(base_path)
   if not p.exists() or not p.is_dir():
-    return {}
+    return result_list
 
-  result_list = []
   for path in p.glob('*.py'):
     module_name = Path(path).stem
     if module_name == '__init__':
@@ -48,7 +48,7 @@ def load_plugins(base_path):
   return result_list
 
 
-def create_map(module_list):
+def create_plugin_map(module_list):
   result_map = {
     '/': send_help
   }
@@ -61,7 +61,7 @@ def create_map(module_list):
   return result_map
 
 
-def create_help(module_list):
+def create_help_list(module_list):
   result_list = []
   for module in module_list:
     props = module.plugin_props()
@@ -76,16 +76,32 @@ def send_help(bot=None, room_id=None, args=None):
   # pylint: disable=unused-argument
   if not all([bot, room_id]):
     return
-  bot.send_message(room_id=room_id, text='\n'.join(plugin_help_ist))
+  bot.send_message(room_id=room_id, text='\n'.join(_plugin_help_list))
 
+#
+#
+#
 
 plugin_dir = here('.')
 
-plugin_list = load_plugins(plugin_dir)
+_plugin_list = load_plugins(plugin_dir)
+_plugin_help_list = create_help_list(_plugin_list)
+_plugin_map = create_plugin_map(_plugin_list)
 
-plugin_map = create_map(plugin_list)
 
-plugin_help_ist = create_help(plugin_list)
+def get_plugin_map(reload=False):
+  """get plugin map, key=commnad, value=function"""
+  # pylint: disable=global-statement
+  global _plugin_map
+  if reload is False:
+    return _plugin_map
+
+  global _plugin_list
+  global _plugin_help_list
+  _plugin_list = load_plugins(plugin_dir)
+  _plugin_help_list = create_help_list(_plugin_list)
+  _plugin_map = create_plugin_map(_plugin_list)
+  return _plugin_map
 
 
 if __name__ == '__main__':
@@ -93,8 +109,7 @@ if __name__ == '__main__':
   logging.basicConfig(level=logging.INFO)
 
   def main():
-    print(plugin_map)
-
+    print(_plugin_map)
     return 0
 
   sys.exit(main())
