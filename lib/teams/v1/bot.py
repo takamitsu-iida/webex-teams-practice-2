@@ -20,6 +20,8 @@ import sys
 import requests
 requests.packages.urllib3.disable_warnings()
 
+from requests_toolbelt.multipart.encoder import MultipartEncoder
+
 logger = logging.getLogger(__name__)
 
 class Bot:
@@ -423,7 +425,7 @@ class Bot:
       return None
 
     payload = {
-      'text': text
+      'text': text or "message"
     }
 
     if room_id is not None:
@@ -440,6 +442,75 @@ class Bot:
 
     api_path = 'https://api.ciscospark.com/v1/messages/'
     return self._requests_post_as_json(api_path=api_path, payload=payload)
+
+
+  def send_image(self, text=None, room_id=None, to_person_id=None, to_person_email=None, image_filename=None):
+    """Create a message with image
+
+    SEE
+    https://developer.webex.com/docs/api/basics/message-attachments
+
+    Keyword Arguments:
+        text {str} -- The message, in plain text (default: {None})
+        room_id {str} -- The room ID of the message (default: {None})
+        to_person_id {str} -- The person ID of the recipient when sending a private 1:1 message. (default: {None})
+        to_person_email {str} -- The email address of the recipient when sending a private 1:1 message. (default: {None})
+        image_filename {str} -- The filename of the image. (default: {None})
+
+    Returns:
+        dict -- post response, or None
+    """
+    if not any([room_id, to_person_id, to_person_email]):
+      return None
+
+    if image_filename is None:
+      return None
+
+    payload = {
+      'text': text or "image"
+    }
+
+    if room_id is not None:
+      payload.update({'roomId': room_id})
+
+    if to_person_id is not None:
+      payload.update({'toPersonId': to_person_id})
+
+    if to_person_email is not None:
+      payload.update({'toPersonEmail': to_person_email})
+
+    payload.update(
+      {
+        'files': (image_filename, open(image_filename, 'rb'), 'image/png')
+      }
+    )
+
+    m = MultipartEncoder(payload)
+
+    headers = {
+      'Authorization': "Bearer {}".format(self.auth_token),
+      'content-type': m.content_type
+    }
+
+    logger.info(m.content_type)
+
+    api_path = 'https://api.ciscospark.com/v1/messages'
+
+    post_result = None
+    try:
+      post_result = requests.post(api_path, data=m, headers=headers, timeout=self.TIMEOUT, verify=False)
+    except requests.exceptions.RequestException as e:
+      logger.exception(e)
+
+    if post_result is None:
+      return None
+
+    if post_result.ok:
+      logger.info("post success: %s", api_path)
+      return post_result.json()
+
+    logger.error("failed to post: %s", api_path)
+    logger.error(post_result.text)
 
 
   def get_attachment(self, attachment_id=None):

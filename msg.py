@@ -57,6 +57,10 @@ def send_card(text=None, card_name=None, to_person_email=None):
   return bot.send_message(**kwargs)
 
 
+def send_image(text=None, image_filename=None, to_person_email=None):
+  return bot.send_image(text=text, image_filename=image_filename, to_person_email=to_person_email)
+
+
 def store_message(send_result):
   if send_result is not None:
     if 'attachments' in send_result:
@@ -225,12 +229,14 @@ if __name__ == '__main__':
 
     # send_text(text='はい！', to_person_email=to_person_email)
     # send_card(text='INPUT CARD', card_name='command.json', to_person_email=to_person_email)
-    send_result = send_card(text='CHOICE CARD', card_name='choice.json', to_person_email=to_person_email)
-    store_message(send_result)
-    show_redis_message_list()
+
+    # send_result = send_card(text='CHOICE CARD', card_name='choice.json', to_person_email=to_person_email)
+    # store_message(send_result)
+    # show_redis_message_list()
+
+    send_image(text='image', image_filename='/Users/iida/python/CF-F10/test/Sortable-master/st/face-01.jpg', to_person_email=to_person_email)
 
     # print(json.dumps(get_weather(), ensure_ascii=False, indent=2))
-
     # send_weather_card(to_person_email=to_person_email)
 
     return 0
